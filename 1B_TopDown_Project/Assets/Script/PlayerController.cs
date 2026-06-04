@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
     private int frameIndex = 0;
     private float timer = 0f;
 
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -88,5 +89,30 @@ public class PlayerController : MonoBehaviour
         frameIndex = 0;
         timer = 0f;
         sr.sprite = currentSprites[frameIndex];
+    }
+
+    public bool isPoweredUp = false;
+
+    // 원래 크기 저장
+    private Vector3 normalScale =
+        new Vector3(0.148521f, 0.148521f, 0.148521f);
+
+    public void ActivatePowerUp()
+    {
+        isPoweredUp = true;
+
+        // 원래 크기의 2배
+        transform.localScale = normalScale * 2f;
+
+        CancelInvoke(nameof(ResetPowerUp));
+        Invoke(nameof(ResetPowerUp), 5f);
+    }
+
+    void ResetPowerUp()
+    {
+        isPoweredUp = false;
+
+        // 원래 크기로 복귀
+        transform.localScale = normalScale;
     }
 }

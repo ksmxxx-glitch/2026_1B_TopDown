@@ -6,11 +6,14 @@ public class EnemyController : MonoBehaviour
     public float moveSpeed = 2f;
     public float traceDistance = 10f;
 
+    public GameObject coinPrefab;
+
     private Transform player;
 
     private void Start()
     {
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        GameObject playerObject =
+            GameObject.FindGameObjectWithTag("Player");
 
         if (playerObject != null)
         {
@@ -23,8 +26,8 @@ public class EnemyController : MonoBehaviour
         if (player == null)
             return;
 
-        // 플레이어와 적 사이 거리 계산
-        Vector2 direction = player.position - transform.position;
+        Vector2 direction =
+            player.position - transform.position;
 
         // 플레이어가 너무 멀면 추적 안 함
         if (direction.magnitude > traceDistance)
@@ -33,17 +36,45 @@ public class EnemyController : MonoBehaviour
         // 방향 정규화
         direction.Normalize();
 
-        // 이동
-        transform.position += (Vector3)direction * moveSpeed * Time.deltaTime;
+        transform.position +=
+            (Vector3)direction *
+            moveSpeed *
+            Time.deltaTime;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
+        if (!collision.CompareTag("Player"))
+            return;
 
+        PlayerController playerController =
+            collision.GetComponent<PlayerController>();
+
+        if (playerController == null)
+            return;
+
+        // 커진 상태
+        if (playerController.isPoweredUp)
+        {
+            Instantiate(
+                coinPrefab,
+                transform.position,
+                Quaternion.identity);
+
+            Destroy(gameObject);
+        }
+        else
+        {
+            PlayerHealth hp =
+                collision.GetComponent<PlayerHealth>();
+
+            if (hp != null)
+            {
+                hp.TakeDamage(1);
+            }
+        }
     }
+
+
 
 }
