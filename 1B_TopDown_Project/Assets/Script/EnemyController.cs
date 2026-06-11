@@ -3,21 +3,39 @@ using UnityEngine.SceneManagement;
 
 public class EnemyController : MonoBehaviour
 {
+    public Sprite[] spriteUp;
+    public Sprite[] spriteDown;
+    public Sprite[] spriteLeft;
+    public Sprite[] spriteRight;
+
     public float moveSpeed = 2f;
-    public float traceDistance = 10f;
+    public float traceDistance = 30f;
 
     public GameObject coinPrefab;
 
+    private SpriteRenderer sr;
     private Transform player;
+
+    private Sprite[] currentSprites;
 
     private void Start()
     {
+        sr = GetComponent<SpriteRenderer>();
+
         GameObject playerObject =
             GameObject.FindGameObjectWithTag("Player");
 
         if (playerObject != null)
         {
             player = playerObject.transform;
+        }
+
+        currentSprites = spriteDown;
+
+        if (currentSprites != null &&
+            currentSprites.Length > 0)
+        {
+            sr.sprite = currentSprites[0];
         }
     }
 
@@ -29,17 +47,48 @@ public class EnemyController : MonoBehaviour
         Vector2 direction =
             player.position - transform.position;
 
-        // 플레이어가 너무 멀면 추적 안 함
         if (direction.magnitude > traceDistance)
             return;
 
-        // 방향 정규화
         direction.Normalize();
 
         transform.position +=
             (Vector3)direction *
             moveSpeed *
             Time.deltaTime;
+
+        // 방향별 스프라이트 변경
+        if (Mathf.Abs(direction.x) >
+            Mathf.Abs(direction.y))
+        {
+            if (direction.x > 0)
+                ChangeSprites(spriteRight);
+            else
+                ChangeSprites(spriteLeft);
+        }
+        else
+        {
+            if (direction.y > 0)
+                ChangeSprites(spriteUp);
+            else
+                ChangeSprites(spriteDown);
+        }
+    }
+
+    private void ChangeSprites(Sprite[] newSprites)
+    {
+        if (newSprites == null)
+            return;
+
+        if (newSprites.Length == 0)
+            return;
+
+        if (currentSprites == newSprites)
+            return;
+
+        currentSprites = newSprites;
+
+        sr.sprite = currentSprites[0];
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -53,13 +102,20 @@ public class EnemyController : MonoBehaviour
         if (playerController == null)
             return;
 
-        // 커진 상태
         if (playerController.isPoweredUp)
         {
-            Instantiate(
-                coinPrefab,
-                transform.position,
-                Quaternion.identity);
+            int coinCount = Random.Range(2, 5);
+
+            for (int i = 0; i < coinCount; i++)
+            {
+                Vector2 offset =
+                    Random.insideUnitCircle * 0.5f;
+
+                Instantiate(
+                    coinPrefab,
+                    (Vector2)transform.position + offset,
+                    Quaternion.identity);
+            }
 
             Destroy(gameObject);
         }
@@ -74,7 +130,4 @@ public class EnemyController : MonoBehaviour
             }
         }
     }
-
-
-
 }

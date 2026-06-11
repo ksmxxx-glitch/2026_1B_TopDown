@@ -8,8 +8,10 @@ using UnityEngine.SceneManagement;
 [Serializable]
 public class PlayerData
 {
-    public List<string> collectedItems = new List<string>();
-    public int stage = 1;
+    public float bestSurvivalTime = 0;
+    public int totalExp = 0;
+    public int level = 1;
+    public int playCount = 0;
 }
 
 public class GameDataManager : MonoBehaviour
@@ -29,14 +31,34 @@ public class GameDataManager : MonoBehaviour
         {
             Destroy(gameObject);    // 중복 방지
         }
+
+    }
+
+    private void Start()
+    {
+        playerData = LoadData();
+
+        playerData.playCount++;
+
+        SaveData(playerData);
     }
 
     public void SaveData(PlayerData playerData)
     {
-        string filePath = Application.persistentDataPath + "/player_data.json";
-        string json = JsonUtility.ToJson(playerData, true);
-        System.IO.File.WriteAllText(filePath, json);
-        Debug.Log("게임 데이터 저장됨: " + json);
+        string filePath =
+            Application.persistentDataPath +
+            "/player_data.json";
+
+        Debug.Log(filePath);
+
+        string json =
+            JsonUtility.ToJson(playerData, true);
+
+        System.IO.File.WriteAllText(
+            filePath,
+            json);
+
+        Debug.Log("게임 데이터 저장됨");
     }
 
     public PlayerData LoadData()
@@ -58,37 +80,39 @@ public class GameDataManager : MonoBehaviour
 
     public void GameStart()
     {
-        PlayerData playerData = LoadData();
-        if (playerData == null)
-        {
-            playerData = new PlayerData();
-            SceneManager.LoadScene("Level_1");
-        }
-        else
-        {
-            SceneManager.LoadScene("Level_" + playerData.stage);
-        }
+        playerData = LoadData();
+
+        SceneManager.LoadScene("Level_1");
     }
 
     public void PlayerDead()
+{
+    SaveData(playerData);
+
+    SceneManager.LoadScene("GameOver");
+}
+    public void AddExp(int amount)
     {
-        PlayerData playerData = LoadData();
-        if (playerData != null)
+        playerData.totalExp += amount;
+
+        int level = 1;
+        int requiredExp = 5;
+        int totalRequiredExp = 0;
+
+        while (playerData.totalExp >= totalRequiredExp + requiredExp)
         {
-            playerData.stage = 1; // 스테이지 초기화
+            totalRequiredExp += requiredExp;
 
-            foreach (string item in playerData.collectedItems.ToList())
-            {
-                if (UnityEngine.Random.Range(0, 2) == 0) // 50% 확률로 아이템 삭제
-                {
-                    playerData.collectedItems.Remove(item);
-                }
-            }
+            level++;
 
-            SaveData(playerData);
+            requiredExp =
+                Mathf.RoundToInt(
+                    requiredExp * 1.25f + 5f);
         }
-        SceneManager.LoadScene("GameOver");
-    }
 
+        playerData.level = level;
+
+        SaveData(playerData);
+    }
 
 }

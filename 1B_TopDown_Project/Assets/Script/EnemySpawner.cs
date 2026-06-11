@@ -6,7 +6,7 @@ public class EnemySpawner : MonoBehaviour
 
     public Transform player;
 
-    public float spawnRadius = 10f;
+    public float spawnRadius = 5f;
 
     public float spawnTime = 2f;
 

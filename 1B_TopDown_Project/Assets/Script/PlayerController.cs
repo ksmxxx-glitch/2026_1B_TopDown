@@ -3,6 +3,8 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    private float survivalTime;
+
     public float moveSpeed = 5f;
     public Sprite[] spriteUp;
     public Sprite[] spriteDown;
@@ -30,24 +32,33 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (input.sqrMagnitude <= 0.01f)
+        survivalTime += Time.deltaTime;
+
+        if (survivalTime >
+        GameDataManager.Instance.playerData.bestSurvivalTime)
         {
-            frameIndex = 0;
-            sr.sprite = currentSprites[frameIndex];
-            return;
-        }
+            GameDataManager.Instance.playerData.bestSurvivalTime =
+                survivalTime;
 
-        timer += Time.deltaTime;
-
-        if (timer >= frameTime)
-        {
-            timer = 0f;
-            frameIndex++;
-
-            if (frameIndex >= currentSprites.Length)
+            if (input.sqrMagnitude <= 0.01f)
+            {
                 frameIndex = 0;
+                sr.sprite = currentSprites[frameIndex];
+                return;
+            }
 
-            sr.sprite = currentSprites[frameIndex];
+            timer += Time.deltaTime;
+
+            if (timer >= frameTime)
+            {
+                timer = 0f;
+                frameIndex++;
+
+                if (frameIndex >= currentSprites.Length)
+                    frameIndex = 0;
+
+                sr.sprite = currentSprites[frameIndex];
+            }
         }
     }
 
@@ -115,4 +126,15 @@ public class PlayerController : MonoBehaviour
         // 원래 크기로 복귀
         transform.localScale = normalScale;
     }
+
+    private void Start()
+    {
+        if (GameDataManager.Instance != null)
+        {
+            moveSpeed =
+                5f +
+                (GameDataManager.Instance.playerData.level * 0.3f);
+        }
+    }
+
 }

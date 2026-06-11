@@ -31,6 +31,7 @@ public class PlayerHealth : MonoBehaviour
 
     void Die()
     {
+        // 
         SceneManager.LoadScene(
             SceneManager.GetActiveScene().buildIndex);
     }
